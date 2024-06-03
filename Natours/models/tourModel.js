@@ -56,6 +56,10 @@ const Tour = mongoose.model('Tour', tourSchema);
 
 module.exports = Tour;
 
+
+
+
+
 // for testing purpose
 // const testTour = new Tour({
 //   name: 'The Park Camper',

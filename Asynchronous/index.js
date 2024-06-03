@@ -11,6 +11,7 @@ const readFilePro = (file) => {
   });
 };
 
+
 const writeFilepro = (file, data) => {
   return new Promise((resolve, reject) => {
     fs.writeFile(file, data, (err) => {
@@ -19,6 +20,7 @@ const writeFilepro = (file, data) => {
     });
   });
 };
+
 
 // readFilePro(`${__dirname}/dog.txt`)
 //   .then((data) => {
