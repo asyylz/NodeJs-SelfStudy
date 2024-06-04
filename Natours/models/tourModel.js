@@ -52,7 +52,11 @@ const tourSchema = new mongoose.Schema(
       default: Date.now(),
       select: false
     },
-    startDates: [Date]
+    startDates: [Date],
+    secretTour: {
+      type: Boolean,
+      default: false
+    }
   },
   { toJSON: { virtuals: true }, toObject: { virtuals: true } }
 );
@@ -60,7 +64,6 @@ const tourSchema = new mongoose.Schema(
 tourSchema.virtual('durationWeeks').get(function() {
   return this.duration / 7;
 });
-
 
 /* --------------------- MIDDLEWARE --------------------- */
 // DOCUMENT MIDDLEWARE: runs before .save() and .create()
@@ -78,6 +81,27 @@ tourSchema.pre('save', function(next) {
 //   console.log(doc);
 //   next(); // we wouldn't really need next, but it's a best practice to simply always include it.
 // });
+
+// find pointing current query:if we use find here  getOne tour still brings the secret tour to prevent this we use regular expression rather than find
+tourSchema.pre(/^find/, function(next) {
+  //tourSchema.pre('find', function(next) {
+  this.find({ secretTour: { $ne: true } });
+  this.start = Date.now();
+  next();
+});
+
+tourSchema.post(/^find/, function(docs, next) {
+  console.log(`Query took ${Date.now() - this.start} miliseconds`);
+  //console.log(docs);
+  next();
+});
+
+// AGGREGATION MIDDLEWARE: this  here  pointing aggregation object. We exclude  the secret tour.
+tourSchema.pre('aggregate', function(next) {
+  this.pipeline().unshift({ $match: { secretTour: { $ne: true } } });
+  console.log(this.pipeline());
+  next();
+});
 
 const Tour = mongoose.model('Tour', tourSchema);
 
