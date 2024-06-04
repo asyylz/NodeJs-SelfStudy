@@ -1,12 +1,17 @@
 const mongoose = require('mongoose');
 const slugify = require('slugify');
+const validator = require('validator');
+
 const tourSchema = new mongoose.Schema(
   {
     name: {
       type: String,
       required: [true, 'A tour must have a name'],
       unique: true,
-      trim: true
+      trim: true,
+      maxlength: [40, 'A tour name must have less or equal then 40 characters'],
+      minlength: [10, 'A tour name must have more or equal then 10 characters']
+      //validate: [validator.isAlpha, 'Tour name must only contains characters']
     },
     slug: String,
     duration: {
@@ -19,11 +24,17 @@ const tourSchema = new mongoose.Schema(
     },
     difficulty: {
       type: String,
-      required: [true, 'A tour must have a difficulty level']
+      required: [true, 'A tour must have a difficulty level'],
+      enum: {
+        values: ['easy', 'medium', 'difficult'],
+        message: 'Difficulty is either:easy,medium  or difficult'
+      }
     },
     ratingsAverage: {
       type: Number,
-      default: 4.5
+      default: 4.5,
+      min: [1, 'Rating must be above 1.0'],
+      max: [5, 'Rating must be below 5.0']
     },
     ratingsQuantity: {
       type: Number,
@@ -33,7 +44,16 @@ const tourSchema = new mongoose.Schema(
       type: Number,
       required: [true, 'A tour must have a price']
     },
-    priceDiscount: Number,
+    priceDiscount: {
+      type: Number,
+      validate: {
+        // this only points doc on NEW document creation,so function here is not going to work on update.
+        validator: function(val) {
+          return val < this.price;
+        },
+        message: 'Discount price ({VALUE}) should be below regular price'
+      }
+    },
     summary: {
       type: String,
       trim: true
@@ -82,7 +102,8 @@ tourSchema.pre('save', function(next) {
 //   next(); // we wouldn't really need next, but it's a best practice to simply always include it.
 // });
 
-// find pointing current query:if we use find here  getOne tour still brings the secret tour to prevent this we use regular expression rather than find
+// find pointing current query:if we use find here  getOne tour still brings the secret tour to prevent this we use regular expression rather than find.
+
 tourSchema.pre(/^find/, function(next) {
   //tourSchema.pre('find', function(next) {
   this.find({ secretTour: { $ne: true } });
