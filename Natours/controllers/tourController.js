@@ -1,4 +1,3 @@
-const { RiEqualFill } = require('react-icons/ri');
 const Tour = require('./../models/tourModel');
 const APIFeatures = require('./../utils/apiFeatures');
 
@@ -12,7 +11,6 @@ exports.aliasTopTours = (req, res, next) => {
 // 1-) ROUTES HANDLERS
 // GET Tours:sending back to the client
 exports.getAllTours = async (req, res) => {
-  console.log(req.query);
   try {
     // EXECUTE QUERY
     const features = new APIFeatures(Tour.find(), req.query)
