@@ -13,7 +13,16 @@ const handleDuplicateFieldsDB = err => {
   return new AppError(message, 400);
 };
 
+const handleValidationErrorDB = err => {
+  console.log('asiye1');
+  const errors = Object.values(err.errors).map(el => el.message);
+  console.log(errors);
+  const message = `Invalid input data. ${errors.join('. ')}`;
+  return new AppError(message, 400);
+};
+
 const sendErrorDev = (err, res) => {
+  console.log('asiyedev');
   res.status(err.statusCode).json({
     status: err.status,
     error: err,
@@ -21,6 +30,7 @@ const sendErrorDev = (err, res) => {
     stack: err.stack
   });
 };
+
 const sendErrorProd = (err, res) => {
   // Operational, trusted error: send message to client
   if (err.isOperational) {
@@ -48,18 +58,18 @@ module.exports = (err, req, res, next) => {
   err.statusCode = err.statusCode || 500;
   err.status = err.status || 'error';
   if (process.env.NODE_ENV === 'development') {
+    if (err.name === 'ValidationError') handleValidationErrorDB(err);
+
     sendErrorDev(err, res);
   } else if (process.env.NODE_ENV === 'production') {
     let error = { ...err };
-    console.log('asiye', err.errorResponse.code);
+    console.log('asiye', error.name);
 
     if (error.name === 'CastError' || error.path === '_id')
       // name field is not available in error objeect
       error = handleCastErrorDB(error);
     if (err.errorResponse.code === 11000)
       error = handleDuplicateFieldsDB(err.errorResponse);
-    //if (error.name === 'ValidationError')
-    //error = handleValidationErrorDB(error);
 
     sendErrorProd(error, res);
   }
