@@ -1,17 +1,16 @@
 const mongoose = require('mongoose');
 const dotenv = require('dotenv');
 
-
 process.on('uncaughtException', err => {
   console.log('UNCAUGHT EXCEPTION! 💥 Shutting down...');
   console.log(err.name, err.message);
   process.exit(1);
 });
 
-
-
 dotenv.config({ path: './.env.local' });
 const app = require('./app');
+
+console.log(process.env.DATABASE_PASSWORD);
 
 const DB = process.env.DATABASE.replace(
   '<PASSWORD>',
@@ -20,11 +19,9 @@ const DB = process.env.DATABASE.replace(
 
 mongoose
   .connect(DB, {
-    //.connect(process.env.DATABASE_LOCAL, {
+    useNewUrlParser: true
   })
-  .then(() => {
-    console.log('DB connection succesful!');
-  });
+  .then(() => console.log('DB connection successful!'));
 
 const port = process.env.PORT || 3000;
 const server = app.listen(port, () => {
@@ -32,14 +29,9 @@ const server = app.listen(port, () => {
 });
 
 process.on('unhandledRejection', err => {
-  console.log(err.name, err.message);
   console.log('UNHANDLED REJECTION! 💥 Shutting down...');
+  console.log(err.name, err.message);
   server.close(() => {
-    process.exit(1); // the code 0 stands for a success and 1 stands for uncaught exception.
+    process.exit(1);
   });
 });
-console.log(x);
-
-// we give the server, basically time to finish all the request that are still pending or being handled at the time, and only after that, the server is then basically killed
-
-

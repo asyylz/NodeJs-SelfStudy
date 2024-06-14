@@ -9,6 +9,13 @@ exports.signup = catchAsync(async (req, res, next) => {
     password: req.body.password,
     passwordConfirm: req.body.passwordConfirm
   });
+  res.status(201).json({
+    status: 'success',
+    data: {
+      user: newUser
+    }
+  });
+
   //createSendToken(newUser, 201, res);
 });
 
