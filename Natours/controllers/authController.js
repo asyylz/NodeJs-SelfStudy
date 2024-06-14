@@ -88,3 +88,5 @@ exports.protect = catchAsync(async (req, res, next) => {
   req.user = currentUser;
   next();
 });
+
+// Because remember, this request object, this is the one that travels, basically, from middleware to middleware. And so, if we want to pass data from one middleware to the next one, then we can simply put some stuff on the request object, and then that data will be available at a later point.
