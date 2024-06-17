@@ -99,6 +99,20 @@ exports.restrictTo = (...roles) => {
         new AppError('You have no permisson to perform this action', 403)
       );
     }
-    next()
+    next();
   };
 };
+
+exports.forgotPassword = catchAsync(async (req, res, next) => {
+  // 1-) Get user based on posted email
+  const user = await User.findOne({ email: req.body.email });
+  if (!user) {
+    return next(new AppError('There is no user with that email address', 404));
+  }
+
+  // 2) Generate the random reset token
+  const resetToken = user.createPasswordResetToken();
+  await user.save({ validateBeforeSave: false });
+});
+
+exports.resetPassword = catchAsync(async (req, res, next) => {});
