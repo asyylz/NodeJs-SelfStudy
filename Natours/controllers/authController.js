@@ -1,8 +1,8 @@
+const { promisify } = require('util');
+const jwt = require('jsonwebtoken');
 const catchAsync = require('../utils/catchAsync');
 const User = require('../models/userModel');
 const AppError = require('../utils/appError');
-const { promisify } = require('util');
-const jwt = require('jsonwebtoken');
 const sendEmail = require('./../utils/email');
 
 const signToken = id => {
@@ -123,6 +123,7 @@ exports.forgotPassword = catchAsync(async (req, res, next) => {
   const message = `Forgot your password? Submit a PATHC  request with your new password and passwordConfirm to: ${resetURL}.\nIf you didn't forget your password, please ignore this email!`;
 
   try {
+    console.log('asiye1');
     await sendEmail({
       email: user.email,
       subject: 'Your password reset token (valid for 10 min )',
@@ -134,6 +135,7 @@ exports.forgotPassword = catchAsync(async (req, res, next) => {
       message: 'Token sent to email'
     });
   } catch (err) {
+    console.log('asiye2');
     user.passwordResetToken = undefined;
     user.passwordResetExpires = undefined;
     await user.save({ validateBeforeSave: false });
