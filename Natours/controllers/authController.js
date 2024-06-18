@@ -11,6 +11,17 @@ const signToken = id => {
     expiresIn: process.env.JWT_EXPIRES_IN
   });
 };
+const createSendToken = (user, statusCode, res) => {
+  const token = signToken(user._id);
+  res.status(statusCode).json({
+    status: 'success',
+    token,
+    data: {
+      user
+    }
+  });
+};
+
 exports.signup = catchAsync(async (req, res, next) => {
   const newUser = await User.create({
     name: req.body.name,
@@ -19,17 +30,7 @@ exports.signup = catchAsync(async (req, res, next) => {
     passwordConfirm: req.body.passwordConfirm
   });
 
-  const token = signToken(newUser._id);
-
-  res.status(201).json({
-    status: 'success',
-    token,
-    data: {
-      user: newUser
-    }
-  });
-
-  //createSendToken(newUser, 201, res);
+  createSendToken(newUser, 201, res);
 });
 
 exports.login = catchAsync(async (req, res, next) => {
@@ -45,15 +46,10 @@ exports.login = catchAsync(async (req, res, next) => {
   if (!user || !(await user.correctPassword(password, user.password))) {
     return next(new AppError('Incorrect email or password', 401));
   }
-  const token = signToken(user._id);
-  res.status(200).json({
-    status: 'success',
-    token
-  });
-
-  //   // 3) If everything ok, send token to client
-  //   createSendToken(user, 200, res);
+  // 3) If everything ok, send token to client
+  createSendToken(user, 200, res);
 });
+
 
 exports.protect = catchAsync(async (req, res, next) => {
   // 1) Getting token and check of it is there
@@ -179,3 +175,29 @@ exports.resetPassword = catchAsync(async (req, res, next) => {
     token
   });
 });
+
+exports.updatePassword = async (req, res, next) => {
+  const { oldPassword, newPassword, confirmNewPassword } = req.body;
+
+  try {
+    const user = await User.findById(req.user.id).select('+password');
+
+    if (!(await user.correctPassword(oldPassword))) {
+      return next(
+        new AppError('Old password does not match of user is not found', 401)
+      );
+    }
+
+    user.password = newPassword;
+    user.passwordConfirm = confirmNewPassword;
+    await user.save();
+    const token = signToken(user._id);
+
+    res.status(200).json({
+      status: 'success',
+      token
+    });
+  } catch (err) {
+    next(err);
+  }
+};
