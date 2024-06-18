@@ -170,28 +170,23 @@ exports.resetPassword = catchAsync(async (req, res, next) => {
   createSendToken(user, 200, res);
 });
 
-exports.updatePassword = async (req, res, next) => {
+exports.updatePassword = catchAsync(async (req, res, next) => {
   const { oldPassword, newPassword, confirmNewPassword } = req.body;
 
-  try {
-    const user = await User.findById(req.user.id).select('+password');
+  const user = await User.findById(req.user.id).select('+password');
 
-    if (!(await user.correctPassword(oldPassword))) {
-      return next(
-        new AppError(
-          'Old password does not match current password of user is not found',
-          401
-        )
-      );
-    }
-    console.log('Asiye', oldPassword, newPassword, confirmNewPassword);
-
-    user.password = newPassword;
-    user.passwordConfirm = confirmNewPassword;
-    await user.save();
-
-    createSendToken(user, 200, res);
-  } catch (err) {
-    next(err);
+  if (!(await user.correctPassword(oldPassword))) {
+    return next(
+      new AppError(
+        'Old password does not match current password of user is not found',
+        401
+      )
+    );
   }
-};
+
+  user.password = newPassword;
+  user.passwordConfirm = confirmNewPassword;
+  await user.save();
+
+  createSendToken(user, 200, res);
+});
