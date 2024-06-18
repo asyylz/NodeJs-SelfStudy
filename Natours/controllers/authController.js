@@ -175,7 +175,6 @@ exports.updatePassword = async (req, res, next) => {
 
   try {
     const user = await User.findById(req.user.id).select('+password');
-    console.log(user);
 
     if (!(await user.correctPassword(oldPassword))) {
       return next(
