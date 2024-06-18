@@ -50,7 +50,6 @@ exports.login = catchAsync(async (req, res, next) => {
   createSendToken(user, 200, res);
 });
 
-
 exports.protect = catchAsync(async (req, res, next) => {
   // 1) Getting token and check of it is there
   let token;
@@ -168,12 +167,7 @@ exports.resetPassword = catchAsync(async (req, res, next) => {
   // 3) Update changedPasswordAt property for the user
 
   // 4) Log the user in, send JWT
-  const token = signToken(user._id);
-
-  res.status(200).json({
-    status: 'success',
-    token
-  });
+  createSendToken(user, 200, res);
 });
 
 exports.updatePassword = async (req, res, next) => {
@@ -181,22 +175,23 @@ exports.updatePassword = async (req, res, next) => {
 
   try {
     const user = await User.findById(req.user.id).select('+password');
+    console.log(user);
 
     if (!(await user.correctPassword(oldPassword))) {
       return next(
-        new AppError('Old password does not match of user is not found', 401)
+        new AppError(
+          'Old password does not match current password of user is not found',
+          401
+        )
       );
     }
+    console.log('Asiye', oldPassword, newPassword, confirmNewPassword);
 
     user.password = newPassword;
     user.passwordConfirm = confirmNewPassword;
     await user.save();
-    const token = signToken(user._id);
 
-    res.status(200).json({
-      status: 'success',
-      token
-    });
+    createSendToken(user, 200, res);
   } catch (err) {
     next(err);
   }
